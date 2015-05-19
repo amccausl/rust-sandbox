@@ -1,0 +1,4 @@
+[package]
+name = "japanese"
+version = "0.1.0"
+authors = ["Alex McCausland <alex.mccausland@gmail.com>"]
