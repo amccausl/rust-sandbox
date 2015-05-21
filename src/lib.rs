@@ -1,9 +1,10 @@
 
 /// Hepburn romanization for input string
-/// @todo return an iterator with result
-/// @todo unicode unwrap for range comparison, byte detection for digraphs
+/// @todo translate strange double-width roman characters
 /// @todo benchmarking
-/// @todo add handling for 一
+/// @todo take an peekable iterator as input
+/// @todo return an iterator with result
+/// @todo unicode unwrap for range comparison optimizations
 pub fn romanize( input: &str ) -> String {
     /*
     for b in input.as_bytes() {
@@ -521,6 +522,43 @@ pub fn romanize( input: &str ) -> String {
             Some( value ) => result.push( value ),
             None => break,
         }
+
+        // Detect long vowel indicator from loan words
+        // @todo should only run when last character was replaced
+        match it.peek() {
+            Some( &value ) => {
+                if value == 'ー' || value == '一' {
+                    match result.pop() {
+                        Some( 'a' ) => {
+                            it.next();
+                            result.push( 'ā' );
+                        },
+                        Some( 'e' ) => {
+                            it.next();
+                            result.push( 'ē' );
+                        },
+                        Some( 'i' ) => {
+                            it.next();
+                            result.push( 'ī' );
+                        },
+                        Some( 'o' ) => {
+                            it.next();
+                            result.push( 'ō' );
+                        },
+                        Some( 'u' ) => {
+                            it.next();
+                            result.push( 'ū' );
+                        },
+                        // This shouldn't happen, but we just add the character back for return
+                        Some( value ) => {
+                            result.push( value );
+                        },
+                        None => {},
+                    };
+                }
+            },
+            None => {},
+        }
     }
     result
 }
@@ -557,7 +595,6 @@ mod tests {
     #[test]
     fn it_romanizes_chinese_loan() {
         assert_eq!( "mājan", romanize( "マージャン" ) );
-        assert_eq!( "ūroncha", romanize( "ウーロン茶" ) );
         assert_eq!( "chāhan", romanize( "チャーハン" ) );
         assert_eq!( "chāshū", romanize( "チャーシュー" ) );
         assert_eq!( "shūmai", romanize( "シューマイ" ) );
